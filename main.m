@@ -1,10 +1,10 @@
 %% Electomagnetic Fields: Electrostatic problem (Integral and MoM)
-% "a" sugarú huzalból "R" sugarú kört hajlítunk (a<<R).
-% A kör síkjában, annak középpontjától "h" távolságban
-% egy "Q" nagyságú ponttöltés áll, levegöben. A huzal össztöltése zérus.
-% Írjanak Matlab függvényt, amely a momentum módszerrel kiszámítja a --
-% megosztás miatt kialakuló -- vonalmenti töltéssürüséget a huzal
-% mentén.
+% "a" sugarÃº huzalbÃ³l "R" sugarÃº kÃ¶rt hajlÃ­tunk (a<<R).
+% A kÃ¶r sÃ­kjÃ¡ban, annak kÃ¶zÃ©ppontjÃ¡tÃ³l "h" tÃ¡volsÃ¡gban
+% egy "Q" nagysÃ¡gÃº ponttÃ¶ltÃ©s Ã¡ll, levegÃ¶ben. A huzal Ã¶ssztÃ¶ltÃ©se zÃ©rus.
+% Ãrjanak Matlab fÃ¼ggvÃ©nyt, amely a momentum mÃ³dszerrel kiszÃ¡mÃ­tja a --
+% megosztÃ¡s miatt kialakulÃ³ -- vonalmenti tÃ¶ltÃ©ssÃ¼rÃ¼sÃ©get a huzal
+% mentÃ©n.
 %% Configuration parameters
 a = 5e-3;  % [m] Radius of wire
 R = 1;     % [m] Radius of the circle 
@@ -19,7 +19,7 @@ dtheta = 2*pi/N; % Number and size of segments
 
 %% Potentials
 % Green function of potential (wire)
-G = @(theta) 1./1./((sqrt((R-a).^2 + (R).^2 - 2*(R)*(R-a)*cos(theta))));
+G = @(theta) 1./((sqrt((R-a).^2 + (R).^2 - 2*(R)*(R-a)*cos(theta))));
 
 % Potential due to the 'Q' charge
 Q_pot = @(theta) K*Q0./sqrt(h^2 + (R-a).^2 -2 * h *(R-a)*cos(pi - theta));
