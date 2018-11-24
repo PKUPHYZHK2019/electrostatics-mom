@@ -8,60 +8,62 @@
 %% Configuration parameters
 a = 5e-3;  % [m] Radius of wire
 R = 1;     % [m] Radius of the circle 
-Q0 = 1e-9; % [C] Charge
-h = 2;    % [m] Distance of the charge from the center of circle
-Q_deg = pi;% [rad] Angle of charge in x-y plane
-eps0 = 8.854e-12;
-K = 1./(4*pi*eps0);
 
-N = 128; dtheta = 2*pi/N; % Number and size of segments
+Q0 = 1e-9; % [C] Charge
+h  = 24;    % [m] Distance of the charge from the center of circle
+eps0 = 8.854e-12;
+K    = 1./(4*pi*eps0);
+
+N = 128; 
+dtheta = 2*pi/N; % Number and size of segments
 
 %% Potentials
 % Green function of potential (wire)
-GreenFunc = @(theta) ...
-    K * 1./((sqrt(a^2 + (R-a).^2 + (R).^2 - 2*(R)*(R-a)*cos(theta))));
+G = @(theta) 1./1./((sqrt((R-a).^2 + (R).^2 - 2*(R)*(R-a)*cos(theta))));
 
-% Potential due to the ´Q´ charge (+ image charges)
-Q1 = -R/h*Q0;
-Q2 = -Q1;
-PhiQ  = @(theta) K*Q0./((sqrt(h^2 + (R-a).^2 -2*h*(R-a)*cos(pi - theta))));
-PhiQ1 = @(theta) K*Q1./((sqrt((R^4)/(h^2) + (R-a).^2 -2*((R^2)/h)*(R-a)*cos(pi - theta))));
-PhiQ2 = K*Q2./(R-a);
+% Potential due to the 'Q' charge
+Q_pot = @(theta) K*Q0./sqrt(h^2 + (R-a).^2 -2 * h *(R-a)*cos(pi - theta));
 
 %% System matrix
-S = zeros(N,N);
+A = zeros(N,N);
 for j = 1:N
     t1 = dtheta*(j-1-1/2);
     t2 = dtheta*(j-1+1/2);
-    S(1,j) = integral(GreenFunc,t1,t2);
+    A(1,j) = K * integral(G,t1,t2);
+end
+% Create the symmetric A matrix
+for k = 2:N
+    A(k,:) = [fliplr(A(1,2:k)), A(1, 1:(N-k+1))];
 end
 
-% Create the symmetric S matrix
-for k = 2:N
-    S(k,:) = [fliplr(S(1,2:k)), S(1, 1:(N-k+1))];
-end
+% New S system matrix
+S = ones(N+1,N+1);
+S(2:N+1,2:N+1) = -1 * A;
+S(1, 1) = 0;
 
 % Right side of the linear equation system
-b = zeros(1,N);
-for z = 0:N-1
-    b(1,z+1) = PhiQ(z*dtheta) + PhiQ1(z*dtheta) + PhiQ2;
-
+b = zeros(N,1);
+for z = 1:N
+    b(z,1) = Q_pot((z-1)*dtheta);
 end
 
-% Line charge density
-q = S\b'*1e12;
+b = [0; b];
+% Potential and line charge density 
+q = S\b;
+% Potential of wire
+Phi = q(1);
 
 % Integral of the line charge density on the circle
+q = q(2:end)*1e12;
 Q = sum(q)*dtheta;
 
-
-disp(['Az ossztoltes = ', num2str(Q), ' pC']);
+disp(['Integral of charge = ', num2str(Q), ' pC']);
+disp(['Potential of wire  = ', num2str(Phi), ' V']);
 hold on
 %% Plot results
 stairs([0:dtheta:N*dtheta], [q;q(end)], 'Linewidth', 1.5)
-%plot(0:dtheta:(N-1)*dtheta,q);
 grid on
-%axis([ 0,2*pi,0,max(q)*1.05])
+axis([ 0,2*pi,min(q)*1.05,max(q)*1.05])
 xlabel('\theta (rad)', 'Fontname', 'FixedWidth', 'FontSize', 14)
 ylabel('q(\theta) (pC/rad)', 'Fontname', 'FixedWidth', 'FontSize', 14)
 set(gca, 'Fontname', 'FixedWidth', 'FontSize', 14)
